@@ -3,55 +3,47 @@ import { useState, useEffect } from "react";
 
 export default function NotesPanel({ selectedDate }) {
   const [notes, setNotes] = useState({});
-
   const [input, setInput] = useState("");
-
   const [showPopup, setShowPopup] = useState(false);
 
-   useEffect(() => {
-    const savedData = localStorage.getItem("notes");
-
-try {
-  const parsed = savedData ? JSON.parse(savedData) : {};
-  setNotes(parsed);
-} catch (error) {
-  setNotes({});
-}
-    setNotes(savedData);
+  // Load notes from localStorage
+  useEffect(() => {
+    try {
+      const savedData = localStorage.getItem("notes");
+      const parsed = savedData ? JSON.parse(savedData) : {};
+      setNotes(parsed);
+    } catch (error) {
+      setNotes({});
+    }
   }, []);
 
-   // Updating the input when date changes.
+  // Update input when selected date changes
   useEffect(() => {
-    if (selectedDate) {
-      const key = selectedDate.toDateString();
-      setInput(notes[key] || "");
-    }
+    if (!selectedDate) return;
+
+    const key = selectedDate.toDateString();
+    setInput(notes?.[key] || "");
   }, [selectedDate, notes]);
 
-  // Saving the note
+  // Save note
   const saveNote = () => {
-  if (!selectedDate) return;
+    if (!selectedDate) return;
 
-  const key = selectedDate.toDateString();
-  const updated = { ...notes, [key]: input };
+    const key = selectedDate.toDateString();
+    const updated = { ...notes, [key]: input };
 
-  setNotes(updated);
-  localStorage.setItem("notes", JSON.stringify(updated));
+    setNotes(updated);
+    localStorage.setItem("notes", JSON.stringify(updated));
 
-  // Show popup
-  setShowPopup(true);
+    setShowPopup(true);
+    setInput("");
 
-  // Clear input after saving
-  setInput("");
+    setTimeout(() => {
+      setShowPopup(false);
+    }, 2000);
+  };
 
-  // Hide popup after 2 seconds
-  setTimeout(() => {
-    setShowPopup(false);
-  }, 2000);
-};
-
-
- return (
+  return (
     <div className="bg-white p-4 rounded-xl shadow">
       <h3 className="mb-2 font-semibold text-mauve-800">
         {selectedDate
@@ -59,22 +51,23 @@ try {
           : "Select a date"}
       </h3>
 
-          {showPopup && (
-  <div className="mt-2 text-green-600 font-semibold">
-    ✅ Saved successfully!
-  </div>
-)}
+      {showPopup && (
+        <div className="mt-2 text-green-600 font-semibold">
+          ✅ Saved successfully!
+        </div>
+      )}
 
       <textarea
         value={input}
         onChange={(e) => setInput(e.target.value)}
         className="w-full h-24 p-2 border rounded text-black"
+        placeholder="Write your note..."
       />
 
       <button
         onClick={saveNote}
         className="mt-2 px-4 py-1 bg-blue-600 text-white rounded 
-             cursor-pointer transition-all duration-200 hover:scale-105"
+        cursor-pointer transition-all duration-200 hover:scale-105"
       >
         Save
       </button>
